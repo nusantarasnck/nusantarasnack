@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NusantaraSnack - Bumbu & Snack Nusantara</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6;color:#333;background:#fafafa}
+header{background:linear-gradient(135deg,#c62828,#d32f2f);color:#fff;padding:1rem;position:sticky;top:0;z-index:20}
+nav{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:1.3rem;font-weight:700}
+.cart-icon{position:relative;font-size:1.5rem;cursor:pointer}
+.cart-count{position:absolute;top:-8px;right:-10px;background:#ffc107;color:#333;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.container{max-width:1100px;margin:2rem auto;padding:0 1rem}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+.product-card{background:#fff;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,.1);overflow:hidden;transition:.3s}
+.product-card:hover{transform:translateY(-3px)}
+.product-image{width:100%;height:180px;object-fit:cover;background:#f4e4c1}
+.product-info{padding:1rem}
+.product-name{font-weight:700;margin-bottom:.3rem}
+.product-description{font-size:.9rem;color:#555;margin-bottom:.5rem;min-height:40px}
+.product-stock{font-size:.85rem;color:#666;margin-bottom:.6rem}
+.product-price{color:#c62828;font-weight:700;margin-bottom:.8rem}
+.add-to-cart{background:#c62828;color:#fff;border:none;padding:.7rem;border-radius:6px;width:100%;cursor:pointer}
+.add-to-cart:hover{background:#b71c1c}
+.cart-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:40}
+.cart-modal.open{display:flex}
+.cart-content{background:#fff;border-radius:10px;padding:1.5rem;max-width:500px;width:90%;max-height:80vh;overflow:auto}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #eee}
+.cart-item button{background:#eee;border:none;padding:.3rem .6rem;border-radius:4px;cursor:pointer;margin:0 .2rem}
+.cart-item button:hover{background:#ccc}
+.cart-total{text-align:right;font-weight:700;color:#c62828;margin-top:1rem}
+.checkout-btn{background:#4caf50;color:#fff;border:none;width:100%;padding:.9rem;border-radius:6px;margin-top:1rem;cursor:pointer}
+.checkout-btn:hover{background:#388e3c}
+#checkoutForm{max-width:700px;margin:2rem auto;padding:1.5rem;background:#fff;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,.1);display:none}
+input,textarea{width:100%;padding:.6rem;border:1px solid #ccc;border-radius:6px;margin-top:.4rem}
+label{font-weight:600;display:block;margin-top:.8rem}
+button[type="submit"]{background:#1976d2;color:#fff;border:none;padding:.8rem 1rem;border-radius:6px;cursor:pointer;margin-top:1rem}
+.pay-info{background:#fff8e1;padding:1rem;border-left:5px solid #ffb300;margin:.8rem 0;border-radius:6px}
+footer{background:#222;color:#fff;text-align:center;padding:1.5rem;margin-top:2rem}
+#thankYou{display:none;text-align:center;margin:2rem auto;padding:2rem;background:#fff;border-radius:10px;max-width:500px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+#notification{position:fixed;top:90px;right:20px;background:#4caf50;color:white;padding:1rem 1.5rem;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;z-index:100}
+</style>
+</head>
+<body>
+<header>
+  <nav>
+    <div class="logo">🌶️ Nusantara Snack</div>
+    <div class="cart-icon" onclick="toggleCart()">🛒<span id="cartCount" class="cart-count">0</span></div>
+  </nav>
+</header>
+
+<div class="container">
+  <h2 style="color:#c62828;text-align:center;margin-bottom:1.5rem">Produk Kami</h2>
+  <div id="productContainer" class="products"></div>
+</div>
+
+<!-- Modal Keranjang -->
+<div id="cartModal" class="cart-modal">
+  <div class="cart-content">
+    <h3>Keranjang Belanja</h3>
+    <div id="cartItems"></div>
+    <div id="cartTotal" class="cart-total">Total: 0 Ruble</div>
+    <button class="checkout-btn" onclick="showCheckout()">Checkout</button>
+    <button class="checkout-btn" style="background:#d32f2f" onclick="toggleCart()">Tutup</button>
+  </div>
+</div>
+
+<!-- Form Checkout -->
+<section id="checkoutForm">
+  <h2>Form Checkout</h2>
+  <p>Silakan transfer ke salah satu rekening berikut sebelum mengirim bukti pembayaran.</p>
+  <div class="pay-info">
+    <ul>
+      <li><b>Sberbank (Rusia):</b> +79932495280 — джеймс</li>
+      <li><b>BCA (Indonesia):</b> 0120-312-103 — James Pangestu</li>
+    </ul>
+  </div>
+
+  <form id="orderForm" action="https://formsubmit.co/jamespangestu.de@gmail.com" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="_subject" value="Pesanan Baru - NusantaraSnack">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_template" value="table">
+
+    <label>Nama Lengkap:</label>
+    <input type="text" name="Nama" required>
+
+    <label>Email:</label>
+    <input type="email" name="Email" required>
+
+    <label>Detail Belanja:</label>
+    <textarea name="Detail Belanja" id="orderDetails" readonly></textarea>
+
+    <label>Total Belanja:</label>
+    <input type="text" name="Total" id="orderTotal" readonly>
+
+    <label>Upload Bukti Pembayaran:</label>
+    <input type="file" id="proof" name="Bukti Pembayaran" accept="image/*" required>
+
+    <button type="submit">Kirim Pesanan</button>
+  </form>
+</section>
+
+<!-- Pesan Terima Kasih -->
+<div id="thankYou">
+  <h2>🎉 Terima kasih!</h2>
+  <p>Pesanan dan bukti pembayaran Anda telah terkirim.</p>
+  <button onclick="goBackToStore()" style="margin-top:1rem;padding:.8rem 1.5rem;background:#4caf50;color:#fff;border:none;border-radius:6px;cursor:pointer">Kembali ke Toko</button>
+</div>
+
+<footer>
+  &copy; 2025 NusantaraSnack - Membawa cita rasa Nusantara ke seluruh dunia
+</footer>
+
+<div id="notification"></div>
+
+<script>
+let products=[
+ {id:1,name:"Nasi Goreng Yummy",price:140,stock:5,description:"Bumbu nasi goreng khas Indonesia, cocok untuk 2 porsi.",image:"./images/Nasgor2.jpg"},
+ {id:2,name:"Bumbu Royco Sapi",price:140,stock:3,description:"Kaldu sapi gurih dengan rasa nusantara.",image:"./images/Royco.jpg"},
+ {id:3,name:"Sambel Uleg",price:140,stock:4,description:"Sambal uleg asli, pedas mantap dan praktis.",image:"./images/Sambel Uleg.jpg"},
+ {id:4,name:"Tolak Angin",price:50,stock:10,description:"Obat herbal tradisional untuk menjaga daya tahan tubuh.",image:"./images/Tolak Angin.jpg"},
+ {id:5,name:"Kari Jepang",price:200,stock:6,description:"Kari instan rasa Jepang, lezat dan mudah disajikan.",image:"./images/Kari Jepang.jpg"},
+ {id:6,name:"Bumbu Soto Betawi",price:140,stock:5,description:"Bumbu siap masak untuk soto Betawi autentik.",image:"./images/Soto Betawi.jpg"}
+];
+let cart=[];
+
+function displayProducts(){
+ const c=document.getElementById("productContainer");
+ c.innerHTML=products.map(p=>`
+  <div class="product-card">
+    <img src="${p.image}" alt="${p.name}" class="product-image" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22120%22><rect fill=%22%23f4e4c1%22 width=%22250%22 height=%22120%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2230%22>🍜</text></svg>'">
+    <div class="product-info">
+      <div class="product-name">${p.name}</div>
+      <div class="product-description">${p.description}</div>
+      <div class="product-stock">${p.stock>0?`Stok: ${p.stock} tersedia`:"<span style='color:red'>Stok habis</span>"}</div>
+      <div class="product-price">${p.price} Ruble</div>
+      <button class="add-to-cart" onclick="addToCart(${p.id})" ${p.stock===0?"disabled":""}>${p.stock===0?"Stok Habis":"Tambah ke Keranjang"}</button>
+    </div>
+  </div>
+ `).join("");
+}
+displayProducts();
+
+function addToCart(id){
+ const p=products.find(x=>x.id===id);
+ if(!p||p.stock<=0){alert("Stok habis!");return;}
+ const exist=cart.find(x=>x.id===id);
+ if(exist){
+   if(exist.qty<p.stock){exist.qty++;}
+   else{alert("Tidak bisa menambah lebih dari stok tersedia!");return;}
+ } else {cart.push({...p,qty:1});}
+ updateCart();
+ showNotification("Produk ditambahkan ke keranjang!");
+}
+
+function updateCart(){
+ const items=document.getElementById("cartItems");
+ const total=document.getElementById("cartTotal");
+ const count=document.getElementById("cartCount");
+ if(cart.length===0){
+  items.innerHTML="<p>Keranjang kosong.</p>";
+  total.textContent="Total: 0 Ruble";
+  count.textContent="0";return;
+ }
+ items.innerHTML=cart.map(i=>`
+  <div class="cart-item">
+    <div>
+      <strong>${i.name}</strong><br>
+      ${i.price} Ruble x ${i.qty}
+    </div>
+    <div>
+      <button onclick="changeQty(${i.id},-1)">–</button>
+      <button onclick="changeQty(${i.id},1)">+</button>
+      <button onclick="removeFromCart(${i.id})">🗑️</button>
+    </div>
+  </div>`).join("");
+ const sum=cart.reduce((s,i)=>s+i.price*i.qty,0);
+ total.textContent="Total: "+sum+" Ruble";
+ count.textContent=cart.reduce((s,i)=>s+i.qty,0);
+}
+
+function changeQty(id,delta){
+ const item=cart.find(i=>i.id===id);
+ if(!item)return;
+ const prod=products.find(p=>p.id===id);
+ if(delta===1 && item.qty>=prod.stock){alert("Stok tidak cukup!");return;}
+ item.qty+=delta;
+ if(item.qty<=0){removeFromCart(id);}
+ updateCart();
+}
+
+function removeFromCart(id){
+ cart=cart.filter(i=>i.id!==id);
+ updateCart();
+}
+
+function toggleCart(){
+ document.getElementById("cartModal").classList.toggle("open");
+}
+
+function showCheckout(){
+ if(cart.length===0){alert("Keranjang kosong!");return;}
+ const details=cart.map(i=>`${i.name} (${i.qty}) x ${i.price} Ruble = ${i.price*i.qty} Ruble`).join("\n");
+ const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+ document.getElementById("orderDetails").value=details;
+ document.getElementById("orderTotal").value=total+" Ruble";
+ document.getElementById("checkoutForm").style.display="block";
+ document.getElementById("cartModal").classList.remove("open");
+ window.scrollTo({top:document.getElementById("checkoutForm").offsetTop,behavior:"smooth"});
+}
+
+function showNotification(msg){
+ const n=document.getElementById("notification");
+ n.textContent=msg;n.style.display="block";
+ setTimeout(()=>{n.style.display="none"},2000);
+}
+
+document.getElementById("orderForm").addEventListener("submit",function(e){
+ e.preventDefault();
+ const file=document.getElementById("proof").files[0];
+ if(!file){alert("Upload bukti pembayaran!");return;}
+ if(!file.type.startsWith("image/")){alert("File harus gambar!");return;}
+ if(file.size>5*1024*1024){alert("Ukuran maksimal 5MB!");return;}
+ const formData=new FormData(this);
+ fetch(this.action,{method:"POST",body:formData})
+ .then(res=>{
+   if(res.ok){
+     cart.forEach(ci=>{
+       const prod=products.find(p=>p.id===ci.id);
+       if(prod) prod.stock=Math.max(prod.stock-ci.qty,0);
+     });
+     cart=[];updateCart();displayProducts();
+     document.getElementById("checkoutForm").style.display="none";
+     document.getElementById("thankYou").style.display="block";
+   } else alert("Gagal mengirim. Pastikan HTTPS & email FormSubmit aktif.");
+ })
+ .catch(()=>alert("Gagal mengirim. Coba lagi."));
+});
+
+function goBackToStore(){
+ document.getElementById("thankYou").style.display="none";
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+</script>
+</body>
+</html>
